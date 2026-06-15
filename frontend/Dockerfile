@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN npm run dev # หรือ npm run build ถ้าต้องการ build สำหรับ production
 # ผลลัพธ์จาก npm run build อยู่ที่ /app/dist/
 
 # ═══ Stage 2: Serve with Nginx ═══════════════════════════════════
