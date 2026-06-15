@@ -275,3 +275,145 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import {
+  AlertTriangle,
+  ArchiveX,
+  BadgeDollarSign,
+  Boxes,
+  CircleCheck,
+  LoaderCircle,
+  Package,
+  PackagePlus,
+  Pencil,
+  Plus,
+  Save,
+  Search,
+  SlidersHorizontal,
+  Star,
+  Trash2,
+  TrendingUp,
+  UserRoundPlus,
+  X
+} from '@lucide/vue'
+
+const products = ref([])
+const loading = ref(true)
+const search = ref('')
+const catFilter = ref('')
+const showModal = ref(false)
+const editingId = ref(null)
+const confirmDelete = ref(null)
+const form = ref({ name: '', category: '', price: '', stock: 0, description: '' })
+
+let debounceTimer = null
+
+const filtered = computed(() => {
+  const s = search.value.toLowerCase()
+  return products.value.filter(p => {
+    const matchS = !s || p.name.toLowerCase().includes(s) || (p.description || '').toLowerCase().includes(s)
+    const matchC = !catFilter.value || p.category === catFilter.value
+    return matchS && matchC
+  })
+})
+
+const previewProducts = computed(() => filtered.value.slice(0, 4))
+
+const categories = computed(() =>
+  [...new Set(products.value.map(p => p.category))].sort()
+)
+
+const stats = computed(() => ({
+  total: products.value.length,
+  lowStock: products.value.filter(p => p.stock < 10).length,
+  totalItems: products.value.reduce((s, p) => s + p.stock, 0),
+  totalValue: products.value.reduce((s, p) => s + parseFloat(p.price) * p.stock, 0)
+}))
+
+function debounceFetch() {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(fetchProducts, 280)
+}
+
+async function fetchProducts() {
+  loading.value = true
+  const q = new URLSearchParams()
+  if (search.value) q.set('search', search.value)
+  if (catFilter.value) q.set('category', catFilter.value)
+  try {
+    const res = await fetch(`/api/products?${q}`)
+    products.value = await res.json()
+  } catch {
+    products.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+function openAdd() {
+  editingId.value = null
+  form.value = { name: '', category: '', price: '', stock: 0, description: '' }
+  showModal.value = true
+}
+
+function openEdit(p) {
+  editingId.value = p.id
+  form.value = { name: p.name, category: p.category, price: p.price, stock: p.stock, description: p.description || '' }
+  showModal.value = true
+}
+
+async function saveProduct() {
+  const body = {
+    name: form.value.name,
+    category: form.value.category,
+    price: parseFloat(form.value.price),
+    stock: parseInt(form.value.stock),
+    description: form.value.description
+  }
+  const url = editingId.value ? `/api/products/${editingId.value}` : '/api/products'
+  const method = editingId.value ? 'PUT' : 'POST'
+  await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  showModal.value = false
+  fetchProducts()
+}
+
+async function deleteProduct(id) {
+  await fetch(`/api/products/${id}`, { method: 'DELETE' })
+  confirmDelete.value = null
+  fetchProducts()
+}
+
+function stockClass(s) {
+  if (s <= 0) return 'out'
+  if (s < 10) return 'low'
+  if (s < 30) return 'mid'
+  return 'high'
+}
+
+function stockLabel(s) {
+  if (s <= 0) return 'หมด'
+  if (s < 10) return 'ใกล้หมด'
+  if (s < 30) return 'ปานกลาง'
+  return 'พร้อมขาย'
+}
+
+function catClass(cat) {
+  const m = {
+    Electronics: 'c-purple',
+    Clothing: 'c-pink',
+    Footwear: 'c-violet',
+    Food: 'c-orange',
+    Sports: 'c-green',
+    Books: 'c-blue',
+    Furniture: 'c-slate',
+    Bags: 'c-orange',
+    Accessories: 'c-green',
+    Tools: 'c-slate'
+  }
+  return m[cat] || 'c-purple'
+}
+
+onMounted(fetchProducts)
+</script>
