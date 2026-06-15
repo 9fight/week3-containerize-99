@@ -271,6 +271,12 @@
       </section>
     </main>
 
+    <footer class="developer-footer">
+      <span>Developer</span>
+      <strong>Chetsada Suthongsa</strong>
+      <small>68319010015</small>
+    </footer>
+
     <div class="overlay" v-if="showModal" @click.self="showModal = false">
       <div class="modal">
         <div class="modal-head">
@@ -1030,6 +1036,36 @@ main {
 .products-section { margin-top: 72px; }
 .section-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 .section-head h2 { margin-top: 4px; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1; font-weight: 900; letter-spacing: 0; }
+.developer-footer {
+  width: 100vw;
+  margin: 18px calc(50% - 50vw) 0;
+  padding: 20px 16px;
+  background: #09090b;
+  color: #fff;
+  border-top: 1px solid rgba(255,255,255,.12);
+  text-align: center;
+}
+.developer-footer span {
+  display: block;
+  color: #a1a1aa;
+  font-size: .76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.developer-footer strong {
+  display: block;
+  margin-top: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
+}
+.developer-footer small {
+  display: block;
+  margin-top: 4px;
+  color: #d4d4d8;
+  font-size: .86rem;
+}
 .alert-low {
   display: flex;
   align-items: center;
