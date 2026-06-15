@@ -123,6 +123,71 @@
         </div>
       </section>
 
+      <section class="faq-section" aria-label="Frequently asked questions">
+        <div class="section-head faq-head">
+          <div>
+            <p class="micro-copy">Quick help</p>
+            <h2>คำถามที่พบบ่อย</h2>
+          </div>
+          <span class="count-chip">เลือกคำถามเพื่อดูคำตอบ</span>
+        </div>
+
+        <div class="faq-grid">
+          <div class="faq-chat">
+            <div class="chat-row bot">
+              <div class="chat-avatar">
+                <BotMessageSquare />
+              </div>
+              <div class="chat-bubble">
+                <strong>StockPro Help</strong>
+                <p>เลือกคำถามด้านซ้าย แล้วระบบจะตอบให้ทันที</p>
+              </div>
+            </div>
+
+            <div class="chat-row user">
+              <div class="chat-bubble">
+                <strong>{{ activeFaq.question }}</strong>
+                <p>อยากรู้เรื่องนี้</p>
+              </div>
+            </div>
+
+            <div class="chat-row bot">
+              <div class="chat-avatar">
+                <MessageSquareQuote />
+              </div>
+              <div class="chat-bubble answer">
+                <strong>คำตอบ</strong>
+                <p>{{ activeFaq.answer }}</p>
+              </div>
+            </div>
+
+            <div class="chat-tips">
+              <span v-for="tip in activeFaq.tips" :key="tip">
+                <CircleCheck />
+                {{ tip }}
+              </span>
+            </div>
+          </div>
+
+          <div class="faq-list">
+            <button
+              v-for="faq in faqItems"
+              :key="faq.id"
+              type="button"
+              class="faq-item"
+              :class="{ active: selectedFaqId === faq.id }"
+              @click="selectedFaqId = faq.id"
+            >
+              <MessagesSquare />
+              <span>
+                <strong>{{ faq.question }}</strong>
+                <small>{{ faq.short }}</small>
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section class="products-section" id="products">
         <div class="section-head">
           <div>
@@ -284,7 +349,10 @@ import {
   BadgeDollarSign,
   Boxes,
   CircleCheck,
+  BotMessageSquare,
   LoaderCircle,
+  MessageSquareQuote,
+  MessagesSquare,
   Package,
   PackagePlus,
   Pencil,
@@ -306,9 +374,41 @@ const catFilter = ref('')
 const showModal = ref(false)
 const editingId = ref(null)
 const confirmDelete = ref(null)
+const selectedFaqId = ref('search')
 const form = ref({ name: '', category: '', price: '', stock: 0, description: '' })
 
 let debounceTimer = null
+
+const faqItems = [
+  {
+    id: 'search',
+    question: 'ค้นหาสินค้ายังไง?',
+    short: 'ใช้ search bar ด้านบน',
+    answer: 'พิมพ์ชื่อสินค้า หรือคำอธิบายลงในช่องค้นหา ระบบจะกรองรายการให้ทันที',
+    tips: ['ค้นได้ทั้งชื่อและคำอธิบาย', 'พิมพ์แล้วรอระบบกรองอัตโนมัติ', 'ใช้คู่กับตัวเลือกหมวดหมู่ได้']
+  },
+  {
+    id: 'add',
+    question: 'เพิ่มสินค้าใหม่ทำยังไง?',
+    short: 'กดปุ่มเพิ่มสินค้า',
+    answer: 'กดปุ่ม เพิ่มสินค้าใหม่ หรือ เพิ่มสินค้า จากนั้นกรอกชื่อ หมวดหมู่ ราคา สต็อก และคำอธิบายแล้วกดบันทึก',
+    tips: ['ฟอร์มรองรับแก้ไขข้อมูลเดิมได้', 'ราคาใส่ทศนิยมได้', 'สต็อกต้องเป็นตัวเลข']
+  },
+  {
+    id: 'low-stock',
+    question: 'สินค้าใกล้หมดดูตรงไหน?',
+    short: 'เช็กการ์ดสีแดงและ alert',
+    answer: 'ดูจากการ์ดสรุปสต็อกใกล้หมด และการ์ดสินค้าแต่ละใบที่มีแถบหรือสถานะสีแดง',
+    tips: ['ต่ำกว่า 10 ชิ้นจะถูกนับเป็นใกล้หมด', 'สต็อกหมดจะแสดงเป็นหมดแล้ว', 'มี alert ด้านบนรายการสินค้า']
+  },
+  {
+    id: 'delete',
+    question: 'ลบสินค้าแล้วกู้คืนได้ไหม?',
+    short: 'ลบถาวรจากระบบ',
+    answer: 'การลบในหน้านี้เป็นการลบออกจากรายการทันที จึงควรตรวจชื่อสินค้าให้ดีก่อนยืนยัน',
+    tips: ['มีหน้าต่างยืนยันก่อนลบ', 'กด ยกเลิก เพื่อไม่ลบข้อมูล', 'ควรสำรองข้อมูลก่อนใช้งานจริง']
+  }
+]
 
 const filtered = computed(() => {
   const s = search.value.toLowerCase()
@@ -331,6 +431,8 @@ const stats = computed(() => ({
   totalItems: products.value.reduce((s, p) => s + p.stock, 0),
   totalValue: products.value.reduce((s, p) => s + parseFloat(p.price) * p.stock, 0)
 }))
+
+const activeFaq = computed(() => faqItems.find(item => item.id === selectedFaqId.value) || faqItems[0])
 
 function debounceFetch() {
   clearTimeout(debounceTimer)
@@ -768,6 +870,163 @@ main {
 .metric-card span { display: block; margin-top: 8px; color: #71717b; font-size: .86rem; font-weight: 800; }
 .metric-card.danger svg, .metric-card.danger strong { color: #e40014; }
 
+.faq-section {
+  margin-top: 22px;
+  padding: 22px;
+  border: 1px solid #e4e4e7;
+  border-radius: 28px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 20px 60px rgba(9,9,11,.06);
+}
+
+.faq-head { margin-bottom: 16px; }
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: 14px;
+}
+
+.faq-chat {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #e4e4e7;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff, #fafafa);
+}
+
+.chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.chat-row.user {
+  justify-content: flex-end;
+}
+
+.chat-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: #171717;
+}
+
+.chat-bubble {
+  max-width: min(100%, 520px);
+  padding: 14px 16px;
+  border: 1px solid #e4e4e7;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(9,9,11,.05);
+}
+
+.chat-row.user .chat-bubble {
+  background: #171717;
+  color: #fff;
+  border-color: #171717;
+}
+
+.chat-bubble strong {
+  display: block;
+  font-size: .88rem;
+  line-height: 1.35;
+}
+
+.chat-bubble p {
+  margin-top: 6px;
+  font-size: .92rem;
+  line-height: 1.7;
+}
+
+.chat-bubble.answer strong {
+  color: #4f39f6;
+}
+
+.chat-row.user .chat-bubble strong,
+.chat-row.user .chat-bubble p {
+  color: #fff;
+}
+
+.chat-tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.chat-tips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 999px;
+  color: #3f3f46;
+  background: #fff;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.chat-tips svg { width: 16px; height: 16px; color: #00bb7f; }
+
+.faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.faq-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #e4e4e7;
+  border-radius: 20px;
+  background: #fafafa;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.faq-item:hover {
+  border-color: #c7d2ff;
+  transform: translateY(-1px);
+  background: #fff;
+}
+
+.faq-item.active {
+  border-color: #615fff;
+  background: #eef2ff;
+}
+
+.faq-item svg {
+  width: 18px;
+  height: 18px;
+  color: #4f39f6;
+}
+
+.faq-item strong {
+  display: block;
+  color: #09090b;
+  font-size: .92rem;
+  line-height: 1.35;
+}
+
+.faq-item small {
+  display: block;
+  margin-top: 4px;
+  color: #71717b;
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
 .products-section { margin-top: 72px; }
 .section-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 .section-head h2 { margin-top: 4px; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1; font-weight: 900; letter-spacing: 0; }
@@ -977,6 +1236,7 @@ main {
   .headline-main { white-space: normal; }
   .hero-visual { min-height: 420px; }
   .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .faq-grid { grid-template-columns: 1fr; }
   .tool-surface { grid-template-columns: 1fr; }
   .count-chip { justify-self: start; }
 }
@@ -1005,6 +1265,13 @@ main {
   .hero-visual { min-height: auto; }
   .floating-card { position: static; margin-top: 12px; }
   .metric-strip, .form-grid { grid-template-columns: 1fr; }
+  .faq-section { padding: 16px; }
+  .chat-row {
+    gap: 10px;
+  }
+  .chat-avatar { width: 38px; height: 38px; flex-basis: 38px; }
+  .chat-bubble { padding: 12px 14px; }
+  .faq-item { grid-template-columns: 32px 1fr; }
   .modal-actions { flex-direction: column; }
   .modal-btn, .modal .fusions-btn { width: 100%; }
 }
