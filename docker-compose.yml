@@ -21,7 +21,7 @@ services:
     build: ./backend
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "3002:3001"
     environment:
       DB_HOST:     db
       DB_PORT:     5432
@@ -38,7 +38,7 @@ services:
     build: ./frontend
     restart: unless-stopped
     ports:
-      - "5173:80"
+      - "5174:80"
     depends_on:
       - backend
 
